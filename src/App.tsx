@@ -4,18 +4,18 @@ import { Grid } from './models/Grid';
 import { GridRenderer, type GridStyle } from './models/GridRenderer';
 
 function App() {
-  const rows = 5;
+  const rows = 12;
   const cols = 5;
-  const cellSize = 50;
+  const cellSize = 40;
 
   const grid = new Grid(rows, cols);
-  const width = cellSize * rows;
-  const height = cellSize * cols;
+  const width = cellSize * cols;
+  const height = cellSize * rows;
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const gridStyle: GridStyle = {
     borderColor: "black",
-    borderWidth: 5,
+    borderWidth: 2,
     cellSize: cellSize
   }
   const palette: string[] = ["red", "blue"];

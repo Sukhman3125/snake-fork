@@ -33,8 +33,8 @@ export class GridRenderer {
         const { cellSize } = this.gridStyle;
         for (let i = 0; i < grid.rows; i++) {
             for (let j = 0; j < grid.cols; j++) {
-                const x = i * cellSize;
-                const y = j * cellSize;
+                const x = j * cellSize;
+                const y = i * cellSize;
 
                 const val = grid.getCell(i, j);
                 this.drawCell(x, y, val)
