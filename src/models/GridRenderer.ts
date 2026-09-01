@@ -25,7 +25,7 @@ export class GridRenderer {
         ctx.fillStyle = borderColor;
         ctx.fillRect(x, y, cellSize, cellSize);
 
-        ctx.fillStyle = val >= palette.length ? "white" : palette[val];
+        ctx.fillStyle = val >= palette.length || val < 0 ? "white" : palette[val];
         ctx.fillRect(x + borderWidth, y + borderWidth, cellSize - 2 * borderWidth, cellSize - 2 * borderWidth);
     }
 
@@ -40,6 +40,13 @@ export class GridRenderer {
                 this.drawCell(x, y, val)
             }
         }
+    }
+
+    setStyle(style: GridStyle) {
+        this.gridStyle = style;
+    }
+    setPalette(palette: string[]) {
+        this.palette = palette;
     }
 }
 

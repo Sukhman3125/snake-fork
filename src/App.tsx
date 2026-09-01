@@ -5,10 +5,10 @@ import { GridRenderer, type GridStyle } from './models/GridRenderer';
 
 function App() {
   const rows = 12;
-  const cols = 5;
+  const cols = 18;
+  const grid = new Grid({rows, cols});
+  
   const cellSize = 40;
-
-  const grid = new Grid(rows, cols);
   const width = cellSize * cols;
   const height = cellSize * rows;
 
