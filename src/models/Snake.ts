@@ -6,6 +6,16 @@ export interface SnakeOptions {
     direction?: number;
 }
 
+const Directions = {
+    up: 0,
+    right: 1,
+    down: 2,
+    left: 3,
+    stopped: -1
+};
+
+export type Direction = typeof Directions[keyof typeof Directions];
+
 export class Snake {
     private length: number;
     private head: GridPosition;
@@ -19,7 +29,7 @@ export class Snake {
         this.direction = option.direction ?? -1;
         if (!this.isValidDirection(this.direction))
             this.direction = -1;
-        this.queue = [];
+        this.queue = [this.head];
     }
 
     /*
@@ -69,6 +79,13 @@ export class Snake {
         this.length += amount;
     }
 
+    getNextHead(): GridPosition {
+        return {
+            row: this.head.row + this.diff[this.direction],
+            col: this.head.col + this.diff[this.direction + 1]
+        };
+    }
+
     moveForward(): MoveResult {
         const res: MoveResult = {
             head: this.head,
@@ -78,10 +95,7 @@ export class Snake {
         if (this.direction == -1)
             return res;
 
-        const newHead: GridPosition = {
-            row: this.head.row + this.diff[this.direction],
-            col: this.head.col + this.diff[this.direction + 1]
-        };
+        const newHead: GridPosition = this.getNextHead();
         res.head = newHead;
         this.head = newHead;
 

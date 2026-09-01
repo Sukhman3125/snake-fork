@@ -36,7 +36,7 @@ export class GridRenderer {
                 const x = j * cellSize;
                 const y = i * cellSize;
 
-                const val = grid.getCell(i, j);
+                const val = grid.getCell({ row: i, col: j });
                 this.drawCell(x, y, val)
             }
         }

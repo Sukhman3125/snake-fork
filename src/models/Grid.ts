@@ -14,25 +14,29 @@ export class Grid {
         this.buffer = new Uint8Array(this.rows * this.cols);
     }
 
-    private getIndex(row: number, col: number): number {
-        return row * this.cols + col;
+    private getIndex(position: GridPosition): number {
+        return position.row * this.cols + position.col;
     }
 
-    getCell(row: number, col: number): number {
-        if (row < 0 || row >= this.rows || col < 0 || col >= this.cols)
+    getCell(position: GridPosition): number {
+        if (position.row < 0 || position.row >= this.rows || position.col < 0 || position.col >= this.cols)
             return -1;
 
-        const index = this.getIndex(row, col);
+        const index = this.getIndex(position);
         return this.buffer[index];
     }
 
-    setCell(row: number, col: number, val: number): void {
-        const index = this.getIndex(row, col);
+    setCell(position: GridPosition, val: number): void {
+        const index = this.getIndex(position);
 
         if (index >= this.buffer.length)
             return;
 
-        this.buffer[row * this.cols + col] = val;
+        this.buffer[position.row * this.cols + position.col] = val;
+    }
+
+    getCount(value: number): number {
+        return this.buffer.reduce((count, val) => val == value ? count + 1 : count, 0);
     }
 };
 
