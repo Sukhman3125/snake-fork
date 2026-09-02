@@ -17,9 +17,14 @@ export class Grid {
     private getIndex(position: GridPosition): number {
         return position.row * this.cols + position.col;
     }
+    
+    private isValid(position: GridPosition): boolean {
+        return (position.row >= 0 && position.row < this.rows && position.col >= 0 && position.col < this.cols);
+
+    }
 
     getCell(position: GridPosition): number {
-        if (position.row < 0 || position.row >= this.rows || position.col < 0 || position.col >= this.cols)
+        if(!this.isValid(position))
             return -1;
 
         const index = this.getIndex(position);
@@ -27,12 +32,11 @@ export class Grid {
     }
 
     setCell(position: GridPosition, val: number): void {
-        const index = this.getIndex(position);
-
-        if (index >= this.buffer.length)
+        if(!this.isValid(position))
             return;
-
-        this.buffer[position.row * this.cols + position.col] = val;
+        
+        const index = this.getIndex(position);
+        this.buffer[index] = val;
     }
 
     getCount(value: number): number {

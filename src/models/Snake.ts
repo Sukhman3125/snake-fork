@@ -1,9 +1,9 @@
 import type { GridPosition } from "./Grid";
 
 export interface SnakeOptions {
-    headPosition: GridPosition;
-    length?: number;
-    direction?: number;
+    snakeHead: GridPosition;
+    snakeLength?: number;
+    snakeDirection?: number;
 }
 
 const Directions = {
@@ -24,9 +24,9 @@ export class Snake {
     private diff = [-1, 0, 1, 0, -1];
 
     constructor(option: SnakeOptions) {
-        this.length = option.length ?? 1;
-        this.head = option.headPosition;
-        this.direction = option.direction ?? -1;
+        this.length = option.snakeLength ?? 1;
+        this.head = option.snakeHead;
+        this.direction = option.snakeDirection ?? -1;
         if (!this.isValidDirection(this.direction))
             this.direction = -1;
         this.queue = [this.head];

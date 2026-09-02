@@ -10,8 +10,6 @@ function App() {
 
   const boardRef = useRef(new Board({ rows, cols, snakeHead: { row: 3, col: 3 } }));
   const board = boardRef.current;
-  board.addFruit({row: 4, col:14});
-  board.addFruit({row: 9, col:27});
 
   const cellSize = 40;
   const width = cellSize * cols;

@@ -1,10 +1,7 @@
-import { Grid, type GridPosition } from "./Grid";
-import { Snake } from "./Snake";
+import { Grid, type GridOptions, type GridPosition } from "./Grid";
+import { Snake, type SnakeOptions } from "./Snake";
 
-export interface BoardOptions {
-    rows: number;
-    cols: number;
-    snakeHead: GridPosition;
+export interface BoardOptions extends GridOptions, SnakeOptions {
     growIncrement?: number;
 };
 
@@ -26,12 +23,32 @@ export class Board {
     public readonly snake;
     private growIncrement;
 
+    private emptyCells: GridPosition[];
+    private mp: Map<GridPosition, number>;
+
     constructor(options: BoardOptions) {
         this.rows = options.rows;
         this.cols = options.cols;
         this.grid = new Grid({ rows: this.rows, cols: this.cols });
-        this.snake = new Snake({ headPosition: options.snakeHead, length: 5 });
+
+        this.snake = new Snake({ snakeHead: options.snakeHead, snakeLength: 5 });
         this.growIncrement = options.growIncrement ?? 5;
+        this.grid.setCell(options.snakeHead, BoardStates.snakeHead);
+
+        this.emptyCells = [];
+        this.mp = new Map();
+        for (let row = 0; row < this.rows; row++) {
+            for (let col = 0; col < this.cols; col++) {
+                const pos: GridPosition = { row, col };
+                if (this.grid.getCell(pos) === BoardStates.empty) {
+                    this.emptyCells.push(pos);
+                    this.mp.set(pos, this.emptyCells.length - 1);
+                }
+            }
+        }
+
+        this.addFruit(); 
+        this.addFruit();
     }
 
     addFruit(): void;
@@ -44,19 +61,25 @@ export class Board {
 
             this.grid.setCell(position, BoardStates.fruit);
         } else {
-            if (this.grid.getCount(BoardStates.empty) === 0)
+            if (this.emptyCells.length === 0)
                 return;
 
-            // TODO: keep list of empty cells
-            return;
-            
-            let position: GridPosition = { row: 0, col: 0 };
-            // do {
-            //     position.row = Math.random() * this.rows;
-            //     position.col = Math.random() * this.cols;
-            // } while (this.grid.getCell(position) !== BoardStates.empty)
+            const lastIndex = this.emptyCells.length - 1;
+            const randomIndex = Math.floor(Math.random() * this.emptyCells.length);
 
-            this.grid.setCell(position, BoardStates.fruit);
+            const randomPosition = this.emptyCells[randomIndex];
+            const lastPosition = this.emptyCells[lastIndex];
+
+            this.emptyCells[randomIndex] = lastPosition;
+            this.emptyCells.pop();
+
+            this.mp.delete(randomPosition);
+
+            if (randomIndex !== lastIndex) {
+                this.mp.set(lastPosition, randomIndex);
+            }
+
+            this.grid.setCell(randomPosition, BoardStates.fruit);
         }
     }
 
