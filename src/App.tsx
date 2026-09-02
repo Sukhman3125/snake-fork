@@ -1,59 +1,81 @@
 import { useEffect, useRef } from 'react';
-import './App.css'
-import { Grid } from './models/Grid';
-import { GridRenderer, type GridStyle } from './models/GridRenderer';
-import { Board } from './models/Board';
+import './App.css';
+import { Game } from './models/Game';
+import type { GridStyle } from './models/GridRenderer';
 
 function App() {
   const rows = 12;
   const cols = 36;
-
-  const boardRef = useRef(new Board({ rows, cols, snakeHead: { row: 3, col: 3 } }));
-  const board = boardRef.current;
 
   const cellSize = 40;
   const width = cellSize * cols;
   const height = cellSize * rows;
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const gameRef = useRef<Game | null>(null);
+
   const gridStyle: GridStyle = {
     borderColor: "black",
     borderWidth: 2,
-    cellSize: cellSize
-  }
-  const palette: string[] = ["blue", "yellow", "red", "green", "purple"];
+    cellSize,
+  };
 
-  let renderer: GridRenderer;
+  const palette = ["blue", "yellow", "red", "green", "purple"];
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    renderer = new GridRenderer({ ctx, gridStyle, palette });
-    update();
-  }, []);
+    gameRef.current = new Game({
+      rows,
+      cols,
+      snakeHead: { row: 3, col: 3 },
+      ctx,
+      palette,
+      gridStyle,
+      paused: true,
+      ticksPerSec: 2,
+    });
 
-  const update = () => {
-    board.tick();
-    renderer.drawGrid(board.grid);
-  }
+    return () => {
+      gameRef.current?.pause();
+    };
+  }, []);
 
   return (
     <div>
-      <div>
-        Hello World
-      </div>
-      <button onClick={() => board.snake.setDirection(0)}>Up</button>
-      <button onClick={() => board.snake.setDirection(1)}>Right</button>
-      <button onClick={() => board.snake.setDirection(2)}>Down</button>
-      <button onClick={() => board.snake.setDirection(3)}>Left</button>
-      <button onClick={update}>Tick</button>
-      <canvas ref={canvasRef} height={height} width={width} />
+      <div>Hello World</div>
+
+      <button onClick={() => gameRef.current?.play()}>
+        Play
+      </button>
+
+      <button onClick={() => gameRef.current?.pause()}>
+        Pause
+      </button>
+
+      <button onClick={() => gameRef.current?.togglePause()}>
+        Toggle
+      </button>
+
+      <button onClick={() => gameRef.current?.setSpeed(2)}>
+        2 TPS
+      </button>
+
+      <button onClick={() => gameRef.current?.setSpeed(5)}>
+        5 TPS
+      </button>
+
+      <canvas
+        ref={canvasRef}
+        height={height}
+        width={width}
+      />
     </div>
   );
 }
 
-export default App
+export default App;

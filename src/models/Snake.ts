@@ -6,7 +6,7 @@ export interface SnakeOptions {
     snakeDirection?: number;
 }
 
-const Directions = {
+export const Directions = {
     up: 0,
     right: 1,
     down: 2,
@@ -47,24 +47,25 @@ export class Snake {
         return !(dir < -1 || dir > 3);
     }
 
-    setDirection(dir: number): void {
+    setDirection(dir: number): boolean {
         if (!this.isValidDirection(dir))
-            return;
+            return false;
 
         // stop snake
         if (dir === -1) {
             this.direction = dir;
-            return;
+            return true;
         }
 
         // if snake not stopped
         if (this.direction !== -1) {
             const opposite = (this.direction + 2) % 4;
             if (dir === opposite)
-                return;
+                return false;
         }
 
         this.direction = dir;
+        return true;
     }
 
     getHead(): GridPosition {
@@ -80,6 +81,8 @@ export class Snake {
     }
 
     getNextHead(): GridPosition {
+        if (this.direction === Directions.stopped)
+            return this.head;
         return {
             row: this.head.row + this.diff[this.direction],
             col: this.head.col + this.diff[this.direction + 1]

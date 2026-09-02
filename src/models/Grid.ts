@@ -20,7 +20,6 @@ export class Grid {
     
     private isValid(position: GridPosition): boolean {
         return (position.row >= 0 && position.row < this.rows && position.col >= 0 && position.col < this.cols);
-
     }
 
     getCell(position: GridPosition): number {

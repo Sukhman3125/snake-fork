@@ -1,5 +1,5 @@
 import { Grid, type GridOptions, type GridPosition } from "./Grid";
-import { Snake, type SnakeOptions } from "./Snake";
+import { Snake, type Direction, type SnakeOptions } from "./Snake";
 
 export interface BoardOptions extends GridOptions, SnakeOptions {
     growIncrement?: number;
@@ -20,8 +20,9 @@ export class Board {
     private cols;
     public readonly grid;
 
-    public readonly snake;
+    private snake;
     private growIncrement;
+    private canTurn; // once per tick
 
     private emptyCells: GridPosition[];
     private mp: Map<GridPosition, number>;
@@ -33,6 +34,7 @@ export class Board {
 
         this.snake = new Snake({ snakeHead: options.snakeHead, snakeLength: 5 });
         this.growIncrement = options.growIncrement ?? 5;
+        this.canTurn = true;
         this.grid.setCell(options.snakeHead, BoardStates.snakeHead);
 
         this.emptyCells = [];
@@ -47,7 +49,7 @@ export class Board {
             }
         }
 
-        this.addFruit(); 
+        this.addFruit();
         this.addFruit();
     }
 
@@ -83,36 +85,57 @@ export class Board {
         }
     }
 
-    tick() {
+    setSnakeDirection(dir: number) {
+        if (!this.canTurn)
+            return;
+
+        const directionChanged: boolean = this.snake.setDirection(dir);
+        if (directionChanged) {
+            this.canTurn = false;
+        }
+    }
+
+    update(): BoardEvent {
+        this.canTurn = true;
         const currHead = this.snake.getHead();
         const nextHead = this.snake.getNextHead();
         const cellValue = this.grid.getCell(nextHead);
 
-        if (
-            !(currHead.row === nextHead.row && currHead.col === nextHead.col)
-            && this.isGameOver(cellValue)
-        )
-            return false;
+        let res: BoardEvent;
 
-        if (cellValue === BoardStates.fruit)
-            this.snake.grow(this.growIncrement);
+        if (!(currHead.row === nextHead.row && currHead.col === nextHead.col)) {
+            if (cellValue === BoardStates.snakeBody) {
+                res = { type: "collision", with: "self" }
+            } else if (cellValue === BoardStates.wall || cellValue === -1) {
+                res = { type: "collision", with: "wall" }
+            } else if (cellValue === BoardStates.fruit) {
+                res = { type: "fruit-eaten" }
+                this.snake.grow(this.growIncrement);
+            }
+            else {
+                res = { type: "snake-moved" };
+            }
+        } else {
+            res = { type: "snake-stopped" };
+            return res;
+        }
 
         this.grid.setCell(currHead, BoardStates.snakeBody);
 
         const { head, tail } = this.snake.moveForward();
         this.grid.setCell(head, BoardStates.snakeHead);
 
-        if (tail)
+        if (tail) {
             this.grid.setCell(tail, BoardStates.empty);
+            this.emptyCells.push(tail);
+        }
 
-        return true;
-    }
-
-    private isGameOver(cellValue: number): boolean {
-        return cellValue !== BoardStates.empty && cellValue !== BoardStates.fruit;
+        return res;
     }
 }
 
-/*
-
-*/
+export type BoardEvent =
+    | { type: "snake-stopped" }
+    | { type: "snake-moved" }
+    | { type: "fruit-eaten" }
+    | { type: "collision", with: "wall" | "self" };
