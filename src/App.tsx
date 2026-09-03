@@ -41,12 +41,12 @@ function App() {
     });
 
     return () => {
-      gameRef.current?.pause();
+      gameRef.current?.destroy();
     };
   }, []);
 
   return (
-    <div>
+    <div className='bg-zinc-800 w-screen h-screen'>
       <div>Hello World</div>
 
       <button onClick={() => gameRef.current?.play()}>

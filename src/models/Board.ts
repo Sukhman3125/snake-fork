@@ -1,4 +1,5 @@
 import { Grid, type GridOptions, type GridPosition } from "./Grid";
+import { RandomizedSet } from "./RandomizedSet";
 import { Snake, type Direction, type SnakeOptions } from "./Snake";
 
 export interface BoardOptions extends GridOptions, SnakeOptions {
@@ -24,8 +25,7 @@ export class Board {
     private growIncrement;
     private canTurn; // once per tick
 
-    private emptyCells: GridPosition[];
-    private mp: Map<GridPosition, number>;
+    private emptyCells: RandomizedSet<GridPosition, string>;
 
     constructor(options: BoardOptions) {
         this.rows = options.rows;
@@ -37,20 +37,15 @@ export class Board {
         this.canTurn = true;
         this.grid.setCell(options.snakeHead, BoardStates.snakeHead);
 
-        this.emptyCells = [];
-        this.mp = new Map();
+        this.emptyCells = new RandomizedSet<GridPosition, string>(pos => `${pos.row},${pos.col}`);
         for (let row = 0; row < this.rows; row++) {
             for (let col = 0; col < this.cols; col++) {
                 const pos: GridPosition = { row, col };
                 if (this.grid.getCell(pos) === BoardStates.empty) {
-                    this.emptyCells.push(pos);
-                    this.mp.set(pos, this.emptyCells.length - 1);
+                    this.emptyCells.insert(pos);
                 }
             }
         }
-
-        this.addFruit();
-        this.addFruit();
     }
 
     addFruit(): void;
@@ -66,21 +61,8 @@ export class Board {
             if (this.emptyCells.length === 0)
                 return;
 
-            const lastIndex = this.emptyCells.length - 1;
-            const randomIndex = Math.floor(Math.random() * this.emptyCells.length);
-
-            const randomPosition = this.emptyCells[randomIndex];
-            const lastPosition = this.emptyCells[lastIndex];
-
-            this.emptyCells[randomIndex] = lastPosition;
-            this.emptyCells.pop();
-
-            this.mp.delete(randomPosition);
-
-            if (randomIndex !== lastIndex) {
-                this.mp.set(lastPosition, randomIndex);
-            }
-
+            const randomPosition = this.emptyCells.getRandom();
+            this.emptyCells.remove(randomPosition);
             this.grid.setCell(randomPosition, BoardStates.fruit);
         }
     }
@@ -111,8 +93,7 @@ export class Board {
             } else if (cellValue === BoardStates.fruit) {
                 res = { type: "fruit-eaten" }
                 this.snake.grow(this.growIncrement);
-            }
-            else {
+            } else {
                 res = { type: "snake-moved" };
             }
         } else {
@@ -121,13 +102,14 @@ export class Board {
         }
 
         this.grid.setCell(currHead, BoardStates.snakeBody);
+        this.emptyCells.remove(nextHead);
 
         const { head, tail } = this.snake.moveForward();
         this.grid.setCell(head, BoardStates.snakeHead);
 
         if (tail) {
             this.grid.setCell(tail, BoardStates.empty);
-            this.emptyCells.push(tail);
+            this.emptyCells.insert(tail);
         }
 
         return res;

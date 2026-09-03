@@ -12,6 +12,7 @@ export class Game {
     private renderer;
     private paused;
     private ticksPerSec: number;
+    private loopId: number | null;
 
     constructor(options: GameOptions) {
         const { rows, cols, snakeHead, snakeDirection, snakeLength, growIncrement, ctx, gridStyle, palette, paused, ticksPerSec } = options;
@@ -20,68 +21,76 @@ export class Game {
 
         this.paused = paused ?? true;
         this.ticksPerSec = ticksPerSec ?? 2;
+        this.loopId = null;
 
         this.setSpeed(this.ticksPerSec);
         this.addKeyboardInputs();
+        this.board.addFruit();
+
         this.render();
-
-        if (!paused)
-            this.loop();
-    }
-
-    private loop() {
-        if (this.paused)
-            return;
-
-        const shouldContinue = this.tick();
-
-        if (shouldContinue) {
-            setTimeout(() => this.loop(), 1000 / this.ticksPerSec);
-        }
-    }
-
-    private tick() {
-        const event: BoardEvent = this.board.update();
-        this.render();
-
-        if(event.type === "collision"){
-            window.alert("Game Over: collision with " + event.with);
-        }
-
-        return event.type !== "collision";
-    }
-
-    private render() {
-        this.renderer.drawGrid(this.board.grid);
     }
 
     setSpeed(ticksPerSec: number) {
-        this.ticksPerSec = Math.floor(ticksPerSec);
-        if (this.ticksPerSec <= 0)
-            this.ticksPerSec = 2;
-        else
-            this.ticksPerSec = ticksPerSec;
+        const pausedState = this.paused;
+        this.pause();
+
+        this.ticksPerSec = Math.max(1, Math.floor(ticksPerSec));
+
+        if (!pausedState)
+            this.play();
     }
 
     //#region play/pause
     play() {
-        if (!this.paused)
+        if (!this.paused || this.loopId !== null)
             return;
 
         this.paused = false;
-        this.loop();
+        this.loopId = setTimeout(() => this.loop(), 1000 / this.ticksPerSec);
     }
     pause() {
-        if (this.paused)
-            return;
-
         this.paused = true;
+        if (this.loopId !== null) {
+            clearTimeout(this.loopId);
+            this.loopId = null;
+        }
     }
     togglePause() {
         if (this.paused)
             this.play();
         else
             this.pause();
+    }
+    //#endregion
+
+    //#region game loop
+    private loop() {
+        if (this.paused)
+            return;
+
+        const event = this.tick();
+        if (event.type === "collision") {
+            window.alert("Game Over: collision with " + event.with);
+            this.loopId = null;
+            return;
+        }
+
+        if (event.type === "fruit-eaten") {
+            this.board.addFruit();
+        }
+
+        this.loopId = setTimeout(() => this.loop(), 1000 / this.ticksPerSec);
+    }
+
+    private tick(): BoardEvent {
+        const event: BoardEvent = this.board.update();
+        this.render();
+
+        return event;
+    }
+
+    private render() {
+        this.renderer.drawGrid(this.board.grid);
     }
     //#endregion
 
@@ -97,14 +106,21 @@ export class Game {
         Escape: () => this.pause(),
     };
 
+    private readonly handleKeyDown = (event: KeyboardEvent) => {
+        const action = this.keyMap[event.code];
+
+        if (!action) return;
+
+        action();
+    };
+
     private addKeyboardInputs() {
-        window.addEventListener("keydown", (event) => {
-            const action = this.keyMap[event.code];
+        window.addEventListener("keydown", this.handleKeyDown);
+    }
 
-            if (!action) return;
-
-            action();
-        });
+    destroy() {
+        this.pause();
+        window.removeEventListener("keydown", this.handleKeyDown);
     }
     //#endregion
 };
