@@ -5,27 +5,41 @@ import { Directions } from "./Snake";
 export interface GameOptions extends BoardOptions, GridRendererOptions {
     paused?: boolean;
     ticksPerSec?: number;
+    setPaused?: (paused: boolean) => void;
+    setDeath?: (death: boolean) => void;
+    setLength?: (length: number) => void;
 }
 
 export class Game {
-    private board;
-    private renderer;
-    private paused;
+    private board: Board;
+    private renderer: GridRenderer;
+
+    private paused: boolean;
+    private died: boolean;
+
     private ticksPerSec: number;
     private loopId: number | null;
 
-    constructor(options: GameOptions) {
-        const { rows, cols, snakeHead, snakeDirection, snakeLength, growIncrement, ctx, gridStyle, palette, paused, ticksPerSec } = options;
-        this.board = new Board({ rows, cols, snakeHead, snakeDirection, snakeLength, growIncrement });
-        this.renderer = new GridRenderer({ ctx, gridStyle, palette });
+    private setDeath: (paused: boolean) => void;
+    private setPaused: (death: boolean) => void;
+    private setLength: (length: number) => void;
 
-        this.paused = paused ?? true;
-        this.ticksPerSec = ticksPerSec ?? 2;
+    constructor(options: GameOptions) {
+        this.board = new Board(options);
+        this.renderer = new GridRenderer(options);
+
+        this.paused = options.paused ?? true;
+        this.ticksPerSec = options.ticksPerSec ?? 2;
         this.loopId = null;
 
         this.setSpeed(this.ticksPerSec);
         this.addKeyboardInputs();
         this.board.addFruit();
+
+        this.died = false;
+        this.setDeath = options.setDeath ?? (() => { });
+        this.setPaused = options.setPaused ?? (() => { });
+        this.setLength = options.setLength ?? (() => { });
 
         this.render();
     }
@@ -42,10 +56,11 @@ export class Game {
 
     //#region play/pause
     play() {
-        if (!this.paused || this.loopId !== null)
+        if (!this.paused || this.loopId !== null || this.died)
             return;
 
         this.paused = false;
+        this.setPaused(this.paused);
         this.loopId = setTimeout(() => this.loop(), 1000 / this.ticksPerSec);
     }
     pause() {
@@ -53,6 +68,7 @@ export class Game {
         if (this.loopId !== null) {
             clearTimeout(this.loopId);
             this.loopId = null;
+            this.setPaused(this.paused);
         }
     }
     togglePause() {
@@ -65,12 +81,13 @@ export class Game {
 
     //#region game loop
     private loop() {
-        if (this.paused)
+        if (this.paused || this.died)
             return;
 
         const event = this.tick();
         if (event.type === "collision") {
-            window.alert("Game Over: collision with " + event.with);
+            this.died = true;
+            this.setDeath(this.died);
             this.loopId = null;
             return;
         }
@@ -78,6 +95,7 @@ export class Game {
         if (event.type === "fruit-eaten") {
             this.board.addFruit();
         }
+        this.setLength(this.board.snakeLength);
 
         this.loopId = setTimeout(() => this.loop(), 1000 / this.ticksPerSec);
     }
@@ -104,6 +122,8 @@ export class Game {
         Space: () => this.togglePause(),
         Enter: () => this.play(),
         Escape: () => this.pause(),
+
+        // KeyR: () => this.reset()
     };
 
     private readonly handleKeyDown = (event: KeyboardEvent) => {

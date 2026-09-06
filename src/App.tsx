@@ -1,13 +1,20 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './App.css';
 import { Game } from './models/Game';
 import type { GridStyle } from './models/GridRenderer';
 
 function App() {
-  const rows = 12;
-  const cols = 36;
+  const [paused, setPaused] = useState(true);
+  const [death, setDeath] = useState(false);
+  const [length, setLength] = useState(1);
+  const [highScore, setHighScore] = useState<number>(() => {
+    return Number(localStorage.getItem("highScore")) || 0;
+  });
+  
+  const rows = 20;
+  const cols = 40;
 
-  const cellSize = 40;
+  const cellSize = 30;
   const width = cellSize * cols;
   const height = cellSize * rows;
 
@@ -16,11 +23,18 @@ function App() {
 
   const gridStyle: GridStyle = {
     borderColor: "black",
-    borderWidth: 2,
+    borderWidth: 1,
     cellSize,
   };
 
-  const palette = ["blue", "yellow", "red", "green", "purple"];
+  const classicPalette = ["blue", "yellow", "red", "green", "purple"];
+  const wormPalette = ["blue", "#e2b8b4", "#dc7f8e", "white", "purple"];
+
+  const difficulty = {
+    easy: 2,
+    medium: 5,
+    hard: 10
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -33,11 +47,15 @@ function App() {
       rows,
       cols,
       snakeHead: { row: 3, col: 3 },
+      snakeLength: length,
       ctx,
-      palette,
+      palette: wormPalette,
       gridStyle,
       paused: true,
-      ticksPerSec: 2,
+      ticksPerSec: difficulty.medium,
+      setDeath,
+      setPaused,
+      setLength
     });
 
     return () => {
@@ -45,35 +63,55 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (length > highScore) {
+      setHighScore(length);
+      localStorage.setItem("highScore", length.toString());
+    }
+  }, [length, highScore]);
+
   return (
-    <div className='bg-zinc-800 w-screen h-screen'>
-      <div>Hello World</div>
+    <div className="bg-zinc-800 w-screen h-screen text-white flex flex-col font-mono">
 
-      <button onClick={() => gameRef.current?.play()}>
-        Play
-      </button>
+      <div className="flex justify-center items-center gap-4 h-10 text-lg">
+        <button onClick={() => { gameRef.current?.setSpeed(difficulty.easy) }}>Easy</button>
+        <button onClick={() => { gameRef.current?.setSpeed(difficulty.medium) }}>Medium</button>
+        <button onClick={() => { gameRef.current?.setSpeed(difficulty.hard) }}>Hard</button>
+      </div>
 
-      <button onClick={() => gameRef.current?.pause()}>
-        Pause
-      </button>
+      <div className="flex justify-center">
+        <canvas
+          ref={canvasRef}
+          height={height}
+          width={width}
+        />
+      </div>
 
-      <button onClick={() => gameRef.current?.togglePause()}>
-        Toggle
-      </button>
+      <div className="flex justify-between ml-5 mr-5 gap-8 py-2 text-lg">
+        <div>
+          Score: <span>{length}</span>
+        </div>
 
-      <button onClick={() => gameRef.current?.setSpeed(2)}>
-        2 TPS
-      </button>
+        <div>
+          High Score: <span>{highScore}</span>
+        </div>
+      </div>
 
-      <button onClick={() => gameRef.current?.setSpeed(5)}>
-        5 TPS
-      </button>
+      {paused && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="bg-black w-40 h-20 flex items-center justify-center text-xl">
+            PAUSED
+          </div>
+        </div>
+      )}
 
-      <canvas
-        ref={canvasRef}
-        height={height}
-        width={width}
-      />
+      {death && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="bg-black w-40 h-20 flex items-center justify-center text-red-500 text-2xl">
+            YOU DIED
+          </div>
+        </div>
+      )}
     </div>
   );
 }

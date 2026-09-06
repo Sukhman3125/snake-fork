@@ -37,10 +37,6 @@ export class Grid {
         const index = this.getIndex(position);
         this.buffer[index] = val;
     }
-
-    getCount(value: number): number {
-        return this.buffer.reduce((count, val) => val == value ? count + 1 : count, 0);
-    }
 };
 
 export interface GridPosition {

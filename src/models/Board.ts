@@ -1,6 +1,6 @@
 import { Grid, type GridOptions, type GridPosition } from "./Grid";
 import { RandomizedSet } from "./RandomizedSet";
-import { Snake, type Direction, type SnakeOptions } from "./Snake";
+import { Snake, type SnakeOptions } from "./Snake";
 
 export interface BoardOptions extends GridOptions, SnakeOptions {
     growIncrement?: number;
@@ -30,9 +30,9 @@ export class Board {
     constructor(options: BoardOptions) {
         this.rows = options.rows;
         this.cols = options.cols;
-        this.grid = new Grid({ rows: this.rows, cols: this.cols });
+        this.grid = new Grid(options);
 
-        this.snake = new Snake({ snakeHead: options.snakeHead, snakeLength: 5 });
+        this.snake = new Snake(options);
         this.growIncrement = options.growIncrement ?? 5;
         this.canTurn = true;
         this.grid.setCell(options.snakeHead, BoardStates.snakeHead);
@@ -67,7 +67,7 @@ export class Board {
         }
     }
 
-    setSnakeDirection(dir: number) {
+    setSnakeDirection(dir: number): void {
         if (!this.canTurn)
             return;
 
@@ -75,6 +75,10 @@ export class Board {
         if (directionChanged) {
             this.canTurn = false;
         }
+    }
+
+    get snakeLength() {
+        return this.snake.getLength();
     }
 
     update(): BoardEvent {

@@ -1,7 +1,7 @@
 export class RandomizedSet<T, K> {
     private items: T[] = [];
     private indices = new Map<K, number>();
-    private readonly key: (item: T)=>K;
+    private readonly key: (item: T) => K;
 
     constructor(key: (item: T) => K) {
         this.key = key;
@@ -26,7 +26,7 @@ export class RandomizedSet<T, K> {
         return true;
     }
 
-    remove(item: T) {
+    remove(item: T): boolean {
         const key = this.key(item);
         if (!this.search(key))
             return false;
@@ -43,7 +43,7 @@ export class RandomizedSet<T, K> {
         return true;
     }
 
-    getRandom() {
+    getRandom(): T {
         return this.items[Math.floor(Math.random() * this.items.length)];
     }
 }
