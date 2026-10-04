@@ -2,15 +2,17 @@ import { useEffect, useRef, useState } from 'react';
 import './App.css';
 import { Game } from './models/Game';
 import type { GridStyle } from './models/GridRenderer';
+import { Directions } from './models/Snake';
 
 function App() {
+  const [ticks, setTicks] = useState(0);
   const [paused, setPaused] = useState(true);
   const [death, setDeath] = useState(false);
   const [length, setLength] = useState(1);
   const [highScore, setHighScore] = useState<number>(() => {
     return Number(localStorage.getItem("highScore")) || 0;
   });
-  
+
   const rows = 20;
   const cols = 40;
 
@@ -27,7 +29,7 @@ function App() {
     cellSize,
   };
 
-  const classicPalette = ["blue", "yellow", "red", "green", "purple"];
+  // const classicPalette = ["blue", "yellow", "red", "green", "purple"];
   const wormPalette = ["blue", "#e2b8b4", "#dc7f8e", "white", "purple"];
 
   const difficulty = {
@@ -48,14 +50,16 @@ function App() {
       cols,
       snakeHead: { row: 3, col: 3 },
       snakeLength: length,
+      snakeDirection: Directions.right,
       ctx,
       palette: wormPalette,
       gridStyle,
       paused: true,
-      ticksPerSec: difficulty.medium,
+      ticksPerSec: difficulty.hard,
       setDeath,
       setPaused,
-      setLength
+      setLength,
+      setTicks
     });
 
     return () => {
@@ -90,6 +94,10 @@ function App() {
       <div className="flex justify-between ml-5 mr-5 gap-8 py-2 text-lg">
         <div>
           Score: <span>{length}</span>
+        </div>
+
+        <div>
+          ticks: <span>{ticks}</span>
         </div>
 
         <div>

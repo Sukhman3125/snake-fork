@@ -8,9 +8,11 @@ export interface GameOptions extends BoardOptions, GridRendererOptions {
     setPaused?: (paused: boolean) => void;
     setDeath?: (death: boolean) => void;
     setLength?: (length: number) => void;
+    setTicks?: (ticks: number) => void;
 }
 
 export class Game {
+    private options: GameOptions;
     private board: Board;
     private renderer: GridRenderer;
 
@@ -19,27 +21,57 @@ export class Game {
 
     private ticksPerSec: number;
     private loopId: number | null;
+    private ticks: number;
 
-    private setDeath: (paused: boolean) => void;
-    private setPaused: (death: boolean) => void;
+    private setDeath: (death: boolean) => void;
+    private setPaused: (paused: boolean) => void;
     private setLength: (length: number) => void;
+    private setTicks: (ticks: number) => void;
 
     constructor(options: GameOptions) {
+        this.options = options;
         this.board = new Board(options);
         this.renderer = new GridRenderer(options);
-
-        this.paused = options.paused ?? true;
+        
         this.ticksPerSec = options.ticksPerSec ?? 2;
         this.loopId = null;
-
-        this.setSpeed(this.ticksPerSec);
-        this.addKeyboardInputs();
-        this.board.addFruit();
-
+        this.ticks = 0;
+        
         this.died = false;
+        this.paused = options.paused ?? true;
+        
         this.setDeath = options.setDeath ?? (() => { });
         this.setPaused = options.setPaused ?? (() => { });
         this.setLength = options.setLength ?? (() => { });
+        this.setTicks = options.setTicks ?? (() => { });
+        
+        this.board.addFruit();
+        this.setSpeed(this.ticksPerSec);
+        this.addKeyboardInputs();
+
+        this.render();
+    }
+    
+    private reset() {
+        const options = this.options;
+        this.board = new Board(options);
+        this.renderer = new GridRenderer(options);
+
+        this.ticksPerSec = options.ticksPerSec ?? 2;
+        this.loopId = null;
+        this.ticks = 0;
+        
+        this.setSpeed(this.ticksPerSec);
+        this.board.addFruit();
+        
+        this.died = false;
+        this.paused = options.paused ?? true;
+        this.ticks = 0;
+        
+        this.setDeath(this.died);
+        this.setPaused(this.paused);
+        this.setLength(this.board.snakeLength);
+        this.setTicks(this.ticks);
 
         this.render();
     }
@@ -53,6 +85,7 @@ export class Game {
         if (!pausedState)
             this.play();
     }
+    //#endregion
 
     //#region play/pause
     play() {
@@ -102,6 +135,8 @@ export class Game {
 
     private tick(): BoardEvent {
         const event: BoardEvent = this.board.update();
+        this.ticks++;
+        this.setTicks(this.ticks);
         this.render();
 
         return event;
@@ -123,7 +158,10 @@ export class Game {
         Enter: () => this.play(),
         Escape: () => this.pause(),
 
-        // KeyR: () => this.reset()
+        KeyR: () => {
+            if (this.paused || this.died)
+                this.reset();
+        }
     };
 
     private readonly handleKeyDown = (event: KeyboardEvent) => {

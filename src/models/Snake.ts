@@ -23,10 +23,10 @@ export class Snake {
     private queue: GridPosition[];
     private diff = [-1, 0, 1, 0, -1];
 
-    constructor(option: SnakeOptions) {
-        this.length = option.snakeLength ?? 1;
-        this.head = option.snakeHead;
-        this.direction = option.snakeDirection ?? -1;
+    constructor(options: SnakeOptions) {
+        this.length = options.snakeLength ?? 1;
+        this.head = options.snakeHead;
+        this.direction = options.snakeDirection ?? -1;
         if (!this.isValidDirection(this.direction))
             this.direction = -1;
         this.queue = [this.head];
