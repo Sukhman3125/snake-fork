@@ -17,7 +17,7 @@ export class GridRenderer {
         this.gridStyle = options.gridStyle;
     }
 
-    drawCell(x: number, y: number, val: number) {
+    drawCell(x: number, y: number, val: number): void {
         const ctx = this.ctx;
         const palette = this.palette;
         const { cellSize, borderColor, borderWidth } = this.gridStyle;
@@ -29,7 +29,7 @@ export class GridRenderer {
         ctx.fillRect(x + borderWidth, y + borderWidth, cellSize - 2 * borderWidth, cellSize - 2 * borderWidth);
     }
 
-    drawGrid(grid: Grid) {
+    drawGrid(grid: Grid): void {
         const { cellSize } = this.gridStyle;
         for (let i = 0; i < grid.rows; i++) {
             for (let j = 0; j < grid.cols; j++) {
@@ -42,10 +42,10 @@ export class GridRenderer {
         }
     }
 
-    setStyle(style: GridStyle) {
+    setStyle(style: GridStyle): void {
         this.gridStyle = style;
     }
-    setPalette(palette: string[]) {
+    setPalette(palette: string[]): void {
         this.palette = palette;
     }
 }

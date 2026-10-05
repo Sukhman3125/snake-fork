@@ -44,7 +44,7 @@ export class Snake {
     3 -> left -> 0,-1
     */
     private isValidDirection(dir: number): boolean {
-        return !(dir < -1 || dir > 3);
+        return (dir >= -1 && dir <= 3);
     }
 
     setDirection(dir: number): boolean {
@@ -52,13 +52,13 @@ export class Snake {
             return false;
 
         // stop snake
-        if (dir === -1) {
+        if (dir === Directions.stopped) {
             this.direction = dir;
             return true;
         }
 
         // if snake not stopped
-        if (this.direction !== -1) {
+        if (this.direction !== Directions.stopped) {
             const opposite = (this.direction + 2) % 4;
             if (dir === opposite)
                 return false;
@@ -95,7 +95,7 @@ export class Snake {
             tail: null
         };
 
-        if (this.direction == -1)
+        if (this.direction === Directions.stopped)
             return res;
 
         const newHead: GridPosition = this.getNextHead();

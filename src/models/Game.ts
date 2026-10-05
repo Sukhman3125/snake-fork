@@ -28,31 +28,32 @@ export class Game {
     private setLength: (length: number) => void;
     private setTicks: (ticks: number) => void;
 
+    //#region setup
     constructor(options: GameOptions) {
         this.options = options;
         this.board = new Board(options);
         this.renderer = new GridRenderer(options);
-        
+
         this.ticksPerSec = options.ticksPerSec ?? 2;
         this.loopId = null;
         this.ticks = 0;
-        
+
         this.died = false;
         this.paused = options.paused ?? true;
-        
+
         this.setDeath = options.setDeath ?? (() => { });
         this.setPaused = options.setPaused ?? (() => { });
         this.setLength = options.setLength ?? (() => { });
         this.setTicks = options.setTicks ?? (() => { });
-        
+
         this.board.addFruit();
         this.setSpeed(this.ticksPerSec);
         this.addKeyboardInputs();
 
         this.render();
     }
-    
-    private reset() {
+
+    private reset(): void {
         const options = this.options;
         this.board = new Board(options);
         this.renderer = new GridRenderer(options);
@@ -60,14 +61,14 @@ export class Game {
         this.ticksPerSec = options.ticksPerSec ?? 2;
         this.loopId = null;
         this.ticks = 0;
-        
+
         this.setSpeed(this.ticksPerSec);
         this.board.addFruit();
-        
+
         this.died = false;
         this.paused = options.paused ?? true;
         this.ticks = 0;
-        
+
         this.setDeath(this.died);
         this.setPaused(this.paused);
         this.setLength(this.board.snakeLength);
@@ -76,7 +77,37 @@ export class Game {
         this.render();
     }
 
-    setSpeed(ticksPerSec: number) {
+    destroy(): void {
+        this.pause();
+        window.removeEventListener("keydown", this.handleKeyDown);
+    }
+    //#endregion
+
+    //#region game controls
+    play(): void {
+        if (!this.paused || this.loopId !== null || this.died)
+            return;
+
+        this.paused = false;
+        this.setPaused(this.paused);
+        this.loopId = setTimeout(() => this.loop(), 1000 / this.ticksPerSec);
+    }
+    pause(): void {
+        this.paused = true;
+        if (this.loopId !== null) {
+            clearTimeout(this.loopId);
+            this.loopId = null;
+            this.setPaused(this.paused);
+        }
+    }
+    togglePause(): void {
+        if (this.paused)
+            this.play();
+        else
+            this.pause();
+    }
+
+    setSpeed(ticksPerSec: number): void {
         const pausedState = this.paused;
         this.pause();
 
@@ -87,33 +118,8 @@ export class Game {
     }
     //#endregion
 
-    //#region play/pause
-    play() {
-        if (!this.paused || this.loopId !== null || this.died)
-            return;
-
-        this.paused = false;
-        this.setPaused(this.paused);
-        this.loopId = setTimeout(() => this.loop(), 1000 / this.ticksPerSec);
-    }
-    pause() {
-        this.paused = true;
-        if (this.loopId !== null) {
-            clearTimeout(this.loopId);
-            this.loopId = null;
-            this.setPaused(this.paused);
-        }
-    }
-    togglePause() {
-        if (this.paused)
-            this.play();
-        else
-            this.pause();
-    }
-    //#endregion
-
     //#region game loop
-    private loop() {
+    private loop(): void {
         if (this.paused || this.died)
             return;
 
@@ -142,7 +148,7 @@ export class Game {
         return event;
     }
 
-    private render() {
+    private render(): void {
         this.renderer.drawGrid(this.board.grid);
     }
     //#endregion
@@ -155,7 +161,12 @@ export class Game {
         ArrowLeft: () => this.board.setSnakeDirection(Directions.left),
 
         Space: () => this.togglePause(),
-        Enter: () => this.play(),
+        Enter: () => {
+            if (this.died)
+                this.reset();
+            else
+                this.play()
+        },
         Escape: () => this.pause(),
 
         KeyR: () => {
@@ -174,11 +185,6 @@ export class Game {
 
     private addKeyboardInputs() {
         window.addEventListener("keydown", this.handleKeyDown);
-    }
-
-    destroy() {
-        this.pause();
-        window.removeEventListener("keydown", this.handleKeyDown);
     }
     //#endregion
 };
