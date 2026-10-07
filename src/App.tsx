@@ -4,39 +4,39 @@ import { Game } from './models/Game';
 import type { GridStyle } from './models/GridRenderer';
 import { Directions } from './models/Snake';
 
+
+const rows = 20;
+const cols = 40;
+
+const cellSize = 30;
+const width = cellSize * cols;
+const height = cellSize * rows;
+
+const gridStyle: GridStyle = {
+  borderColor: "black",
+  borderWidth: 1,
+  cellSize,
+};
+
+// const classicPalette = ["blue", "yellow", "red", "green", "purple"];
+const wormPalette = ["blue", "#e2b8b4", "#dc7f8e", "white", "purple"];
+
+const difficulty = {
+  easy: 5,
+  medium: 10,
+  hard: 15
+};
+
 function App() {
   const [ticks, setTicks] = useState(0);
   const [paused, setPaused] = useState(true);
   const [death, setDeath] = useState(false);
   const [length, setLength] = useState(1);
-  const [highScore, setHighScore] = useState<number>(() => {
-    return Number(localStorage.getItem("highScore")) || 0;
-  });
-
-  const rows = 20;
-  const cols = 40;
-
-  const cellSize = 30;
-  const width = cellSize * cols;
-  const height = cellSize * rows;
+  const [highScore, setHighScore] = useState<number>(() => Number(localStorage.getItem("highScore")) || 0);
+  const [speed, setSpeed] = useState(difficulty.hard);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const gameRef = useRef<Game | null>(null);
-
-  const gridStyle: GridStyle = {
-    borderColor: "black",
-    borderWidth: 1,
-    cellSize,
-  };
-
-  // const classicPalette = ["blue", "yellow", "red", "green", "purple"];
-  const wormPalette = ["blue", "#e2b8b4", "#dc7f8e", "white", "purple"];
-
-  const difficulty = {
-    easy: 2,
-    medium: 5,
-    hard: 10
-  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -74,13 +74,35 @@ function App() {
     }
   }, [length, highScore]);
 
+  const handleSpeed = (val: number) => {
+    gameRef.current?.setSpeed(val);
+    setSpeed(val);
+  }
+
   return (
     <div className="bg-zinc-800 w-screen h-screen text-white flex flex-col font-mono">
 
       <div className="flex justify-center items-center gap-4 h-10 text-lg">
-        <button onClick={() => { gameRef.current?.setSpeed(difficulty.easy) }}>Easy</button>
-        <button onClick={() => { gameRef.current?.setSpeed(difficulty.medium) }}>Medium</button>
-        <button onClick={() => { gameRef.current?.setSpeed(difficulty.hard) }}>Hard</button>
+        <button
+          className={`hover:underline ${speed === difficulty.easy ? "text-green-400" : "text-white"}`}
+          onClick={() => handleSpeed(difficulty.easy)}
+        >
+          Easy
+        </button>
+
+        <button
+          className={`hover:underline ${speed === difficulty.medium ? "text-red-400" : "text-white"}`}
+          onClick={() => handleSpeed(difficulty.medium)}
+        >
+          Medium
+        </button>
+
+        <button
+          className={`hover:underline ${speed === difficulty.hard ? "text-purple-400" : "text-white"}`}
+          onClick={() => handleSpeed(difficulty.hard)}
+        >
+          Hard
+        </button>
       </div>
 
       <div className="flex justify-center">
@@ -91,22 +113,22 @@ function App() {
         />
       </div>
 
-      <div className="flex justify-between ml-5 mr-5 gap-8 py-2 text-lg">
-        <div>
-          Score: <span>{length}</span>
+      <div className="grid grid-cols-3 ml-5 mr-5 py-2 text-lg">
+        <div className="text-left">
+          Score: {length}
         </div>
 
-        <div>
-          ticks: <span>{ticks}</span>
+        <div className="text-center">
+          Time: {ticks}
         </div>
 
-        <div>
-          High Score: <span>{highScore}</span>
+        <div className="text-right">
+          High Score: {highScore}
         </div>
       </div>
 
       {paused && (
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="bg-black w-40 h-20 flex items-center justify-center text-xl">
             PAUSED
           </div>
@@ -114,12 +136,22 @@ function App() {
       )}
 
       {death && (
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="bg-black w-40 h-20 flex items-center justify-center text-red-500 text-2xl">
             YOU DIED
           </div>
         </div>
       )}
+
+      <a
+        className="m-auto hover:underline hover:text-blue-300"
+        href="https://github.com/mars985/snake"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        GitHub
+      </a>
+
     </div>
   );
 }
