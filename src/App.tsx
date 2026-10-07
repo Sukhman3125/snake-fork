@@ -3,7 +3,7 @@ import './App.css';
 import { Game } from './models/Game';
 import type { GridStyle } from './models/GridRenderer';
 import { Directions } from './models/Snake';
-
+import palettes from "./models/palettes";
 
 const rows = 20;
 const cols = 40;
@@ -17,9 +17,6 @@ const gridStyle: GridStyle = {
   borderWidth: 1,
   cellSize,
 };
-
-// const classicPalette = ["blue", "yellow", "red", "green", "purple"];
-const wormPalette = ["blue", "#e2b8b4", "#dc7f8e", "white", "purple"];
 
 const difficulty = {
   easy: 5,
@@ -52,7 +49,7 @@ function App() {
       snakeLength: length,
       snakeDirection: Directions.right,
       ctx,
-      palette: wormPalette,
+      palette: palettes.default,
       gridStyle,
       paused: true,
       ticksPerSec: difficulty.hard,
