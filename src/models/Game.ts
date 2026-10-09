@@ -59,11 +59,9 @@ export class Game {
         this.board = new Board(options);
         this.renderer = new GridRenderer(options);
 
-        this.ticksPerSec = options.ticksPerSec ?? 2;
         this.loopId = null;
         this.ticks = 0;
 
-        this.setSpeed(this.ticksPerSec);
         this.board.addFruit();
 
         this.died = false;
