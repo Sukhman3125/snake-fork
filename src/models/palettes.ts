@@ -74,3 +74,5 @@ export const palettes = {
     wall: "purple",
   },
 } satisfies Record<string, Palette>;
+
+export type PaletteName = keyof typeof palettes;

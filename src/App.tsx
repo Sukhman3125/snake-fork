@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import './App.css';
 import { Game } from './models/Game';
 import type { GridStyle } from './models/GridRenderer';
 import { Directions } from './models/Snake';
-import { palettes } from './models/palettes';
-
+import { palettes, type PaletteName } from './models/palettes';
+import PaletteDropdown from './PaletteDropdown';
 
 const rows = 20;
 const cols = 40;
@@ -19,9 +18,6 @@ const gridStyle: GridStyle = {
   cellSize,
 };
 
-// const classicPalette = ["blue", "yellow", "red", "green", "purple"];
-// const wormPalette = ["blue", "#e2b8b4", "#dc7f8e", "white", "purple"];
-
 const difficulty = {
   easy: 5,
   medium: 10,
@@ -34,7 +30,11 @@ function App() {
   const [death, setDeath] = useState(false);
   const [length, setLength] = useState(1);
   const [highScore, setHighScore] = useState<number>(() => Number(localStorage.getItem("highScore")) || 0);
-  const [speed, setSpeed] = useState(difficulty.hard);
+  const [speed, setSpeed] = useState(difficulty.medium);
+  const [paletteName, setPaletteName] = useState<PaletteName>(() => {
+    const saved = localStorage.getItem("palette");
+    return saved && saved in palettes ? saved as PaletteName : "emerald";
+  });
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const gameRef = useRef<Game | null>(null);
@@ -53,10 +53,10 @@ function App() {
       snakeLength: length,
       snakeDirection: Directions.right,
       ctx,
-      palette: palettes.emerald,
+      palette: palettes[paletteName],
       gridStyle,
       paused: true,
-      ticksPerSec: difficulty.hard,
+      ticksPerSec: speed,
       setDeath,
       setPaused,
       setLength,
@@ -80,30 +80,43 @@ function App() {
     setSpeed(val);
   }
 
+  const handlePalette = (name: PaletteName) => {
+    gameRef.current?.setPalette(palettes[name]);
+    setPaletteName(name);
+    localStorage.setItem("palette", name);
+  }
+
   return (
-    <div className="bg-zinc-800 w-screen h-screen text-white flex flex-col font-mono">
+    <div className="bg-zinc-900 w-screen h-screen text-white flex flex-col font-mono select-none">
 
-      <div className="flex justify-center items-center gap-4 h-10 text-lg">
-        <button
-          className={`hover:underline ${speed === difficulty.easy ? "text-green-400" : "text-white"}`}
-          onClick={() => handleSpeed(difficulty.easy)}
-        >
-          Easy
-        </button>
+      <div className="flex justify-evenly items-center h-10 text-lg">
+        <div>
+          Difficulty:{" "}
+          <span className="inline-flex gap-4">
+            <button
+              className={`hover:underline ${speed === difficulty.easy ? "text-green-400" : "text-white"}`}
+              onClick={() => handleSpeed(difficulty.easy)}
+            >
+              Easy
+            </button>
 
-        <button
-          className={`hover:underline ${speed === difficulty.medium ? "text-red-400" : "text-white"}`}
-          onClick={() => handleSpeed(difficulty.medium)}
-        >
-          Medium
-        </button>
+            <button
+              className={`hover:underline ${speed === difficulty.medium ? "text-red-400" : "text-white"}`}
+              onClick={() => handleSpeed(difficulty.medium)}
+            >
+              Medium
+            </button>
 
-        <button
-          className={`hover:underline ${speed === difficulty.hard ? "text-purple-400" : "text-white"}`}
-          onClick={() => handleSpeed(difficulty.hard)}
-        >
-          Hard
-        </button>
+            <button
+              className={`hover:underline ${speed === difficulty.hard ? "text-purple-400" : "text-white"}`}
+              onClick={() => handleSpeed(difficulty.hard)}
+            >
+              Hard
+            </button>
+          </span>
+        </div>
+
+        <PaletteDropdown value={paletteName} onChange={handlePalette} />
       </div>
 
       <div className="flex justify-center">
