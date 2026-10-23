@@ -1,3 +1,4 @@
+import { BoardStates } from "./Board";
 import type { Grid } from "./Grid";
 import type { Palette } from "./palettes";
 
@@ -37,15 +38,15 @@ export class GridRenderer {
 
   private getColor(val: number): string {
     switch (val) {
-      case 0:
+      case BoardStates.empty:
         return this.palette.empty;
-      case 1:
+      case BoardStates.snakeBody:
         return this.palette.snakeBody;
-      case 2:
+      case BoardStates.snakeHead:
         return this.palette.snakeHead;
-      case 3:
+      case BoardStates.fruit:
         return this.palette.fruit;
-      case 4:
+      case BoardStates.wall:
         return this.palette.wall;
       default:
         return "white";
