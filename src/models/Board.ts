@@ -6,13 +6,15 @@ export interface BoardOptions extends GridOptions, SnakeOptions {
     growIncrement?: number;
 };
 
-const BoardStates = {
+export const BoardStates = {
     empty: 0,
     snakeBody: 1,
     snakeHead: 2,
     fruit: 3,
     wall: 4,
-}
+} as const;
+
+export type BoardStateName = keyof typeof BoardStates;
 
 export type BoardState = typeof BoardStates[keyof typeof BoardStates];
 
