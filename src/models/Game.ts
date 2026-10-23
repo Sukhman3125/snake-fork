@@ -1,5 +1,5 @@
 import { Board, type BoardEvent, type BoardOptions } from "./Board";
-import { DirectionalControls } from "./Controls";
+import { DirectionalControls, ActionControls } from "./Controls";
 import { GridRenderer, type GridRendererOptions } from "./GridRenderer";
 import { Directions } from "./Snake";
 import { GamepadHandler } from "./GamepadHandler";
@@ -55,6 +55,7 @@ export class Game {
         this.board.addFruit();
         this.setSpeed(this.ticksPerSec);
         this.addDirectionalInputs();
+        this.addActionInputs();
         this.addKeyboardInputs();
         this.startGamepadPolling();
 
@@ -184,21 +185,30 @@ export class Game {
     //#endregion
 
     //#region inputs
-    private readonly keyMap: Record<string, () => void> = {
-        Space: () => this.togglePause(),
-        Enter: () => {
-            if (this.died)
-                this.reset();
-            else
-                this.play()
-        },
-        Escape: () => this.pause(),
+    private readonly keyMap: Record<string, () => void> = {};
 
-        KeyR: () => {
-            if (this.paused || this.died)
-                this.reset();
+    private addActionInputs(): void {
+        const actions: Record<keyof typeof ActionControls, () => void> = {
+            pause: () => this.pause(),
+            togglePause: () => this.togglePause(),
+            play: () => {
+                if (this.died)
+                    this.reset();
+                else
+                    this.play();
+            },
+            reset: () => {
+                if (this.paused || this.died)
+                    this.reset();
+            }
+        };
+
+        for (const [actionName, keys] of Object.entries(ActionControls)) {
+            for (const key of keys) {
+                this.keyMap[key] = actions[actionName as keyof typeof ActionControls];
+            }
         }
-    };
+    }
 
     private addDirectionalInputs(): void {
         const directionalControls = [
