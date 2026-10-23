@@ -2,6 +2,7 @@ import { Board, type BoardEvent, type BoardOptions } from "./Board";
 import { DirectionalControls } from "./Controls";
 import { GridRenderer, type GridRendererOptions } from "./GridRenderer";
 import { Directions } from "./Snake";
+import {GamepadHandler} from "./GamepadHandler";
 import type { Palette } from "./palettes";
 
 export interface GameOptions extends BoardOptions, GridRendererOptions {
@@ -29,6 +30,8 @@ export class Game {
     private setPaused: (paused: boolean) => void;
     private setLength: (length: number) => void;
     private setTicks: (ticks: number) => void;
+
+    private gamepadHandler = new GamepadHandler();
 
     //#region setup
     constructor(options: GameOptions) {
@@ -129,6 +132,8 @@ export class Game {
     private loop(): void {
         if (this.paused || this.died)
             return;
+
+        this.gamepadHandler.poll(this.keyMap);
 
         const event = this.tick();
         if (event.type === "collision") {
