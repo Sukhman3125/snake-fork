@@ -2,7 +2,7 @@ import { Board, type BoardEvent, type BoardOptions } from "./Board";
 import { DirectionalControls } from "./Controls";
 import { GridRenderer, type GridRendererOptions } from "./GridRenderer";
 import { Directions } from "./Snake";
-import {GamepadHandler} from "./GamepadHandler";
+import { GamepadHandler } from "./GamepadHandler";
 import type { Palette } from "./palettes";
 
 export interface GameOptions extends BoardOptions, GridRendererOptions {
@@ -32,6 +32,7 @@ export class Game {
     private setTicks: (ticks: number) => void;
 
     private gamepadHandler = new GamepadHandler();
+    private gamepadFrameId: number | null = null;
 
     //#region setup
     constructor(options: GameOptions) {
@@ -55,6 +56,7 @@ export class Game {
         this.setSpeed(this.ticksPerSec);
         this.addDirectionalInputs();
         this.addKeyboardInputs();
+        this.startGamepadPolling();
 
         this.render();
     }
@@ -84,6 +86,11 @@ export class Game {
     destroy(): void {
         this.pause();
         window.removeEventListener("keydown", this.handleKeyDown);
+
+        if (this.gamepadFrameId !== null) {
+            cancelAnimationFrame(this.gamepadFrameId);
+            this.gamepadFrameId = null;
+        }
     }
     //#endregion
 
@@ -128,12 +135,23 @@ export class Game {
     }
     //#endregion
 
+    //#region gamepad
+    private pollGamepad = (): void => {
+        this.gamepadHandler.poll(this.keyMap);
+        this.gamepadFrameId = requestAnimationFrame(this.pollGamepad);
+    };
+
+    private startGamepadPolling(): void {
+        if (this.gamepadFrameId !== null) return;
+
+        this.gamepadFrameId = requestAnimationFrame(this.pollGamepad);
+    }
+    //#endregion
+
     //#region game loop
     private loop(): void {
         if (this.paused || this.died)
             return;
-
-        this.gamepadHandler.poll(this.keyMap);
 
         const event = this.tick();
         if (event.type === "collision") {
